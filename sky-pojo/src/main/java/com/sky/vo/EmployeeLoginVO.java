@@ -13,6 +13,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+//实体类的描述，从登录成功从后端返回给前端的
 @ApiModel(description = "员工登录返回的数据格式")
 public class EmployeeLoginVO implements Serializable {
 

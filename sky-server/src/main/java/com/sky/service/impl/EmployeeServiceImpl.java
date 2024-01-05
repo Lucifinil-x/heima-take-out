@@ -1,7 +1,10 @@
 package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
+import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
+import com.sky.context.BaseContext;
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
@@ -9,14 +12,18 @@ import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.service.EmployeeService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import java.time.LocalDateTime;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
+    //这里爆红，需要在employeeMapper实现类中添加Component注解,让spring能自动检测到它
     private EmployeeMapper employeeMapper;
 
     /**
@@ -26,6 +33,8 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @return
      */
     public Employee login(EmployeeLoginDTO employeeLoginDTO) {
+        System.out.println("当前线程的id" + Thread.currentThread().getId());
+
         String username = employeeLoginDTO.getUsername();
         String password = employeeLoginDTO.getPassword();
 
@@ -53,5 +62,34 @@ public class EmployeeServiceImpl implements EmployeeService {
         //3、返回实体对象
         return employee;
     }
+
+    /**
+     * 新增员工业务方法
+     * @param employeeDTO
+     */
+    @Override //不是必须
+    public void save(EmployeeDTO employeeDTO) {
+        //把dto实体转换成employee实体，因为dto的属性比employee实体少，要添加一些属性
+        Employee employee = new Employee();
+        //数据库中id是自增的主键，不用设置
+        //dto里的属性名在employee里面都有，所以用spring的工具类中的属性拷贝
+        BeanUtils.copyProperties(employeeDTO,employee);
+        //设置剩下的属性
+        //设置状态，1正常，0锁定，使用编码代替硬编码方便后期维护
+        employee.setStatus(StatusConstant.ENABLE);
+        //设置密码，默认密码123456，用spring的工具类进行md5加密,默认密码通过常量类中的常量形式PasswordConstant.DEFAULT_PASSWORD
+        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
+        //设置当前记录的创建时间和修改时间=现在时刻
+        employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());
+        //设置当前创建人id和修改人id,
+        //TODO 固定值以后要改为当前登录用户的id-通过拦截器中的方法拿到请求头中jwt,解析回JwtClaimsConstant对象，里面有员工id,存到封装好的TreadLocal工具类中，再这里再从TreadLocal工具类中取出来
+        employee.setCreateUser(BaseContext.getCurrentId());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+
+        //前端传过来的对象装到实体类之后，用持久层的mapper存到数据库里
+        employeeMapper.insert(employee);
+    }
+
 
 }

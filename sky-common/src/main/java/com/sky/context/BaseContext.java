@@ -1,5 +1,5 @@
 package com.sky.context;
-
+//工具类，创建一个Thread局部变量，定义方法，对线程单独的空间进行存取线程id
 public class BaseContext {
 
     public static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
