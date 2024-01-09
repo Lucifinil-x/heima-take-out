@@ -11,4 +11,24 @@
         </where>
         order by create_time desc
     </select>
+
+    <update id="update" parameterType="Employee">
+        update employee
+             /*可能会修改的字段都列出来达到动态且通用的效果,
+               employee对象里面包含哪个值说明要把哪个值改进去*/
+        <set>
+            <if test="name != null"> name = #{name},</if>
+            <if test="username != null"> username = #{username},</if>
+            <if test="password != null"> password = #{password},</if>
+            <if test="phone != null"> phone = #{phone},</if>
+            <if test="sex != null"> sex = #{sex},</if>
+            <if test="idNumber != null"> idNumber = #{idNumber},</if>
+            <if test="updateTime != null"> updateTime = #{updateTime},</if>
+            <if test="updateUser != null"> updateUser = #{updateUser},</if>
+            <if test="status != null"> status = #{status},</if>
+        </set>
+        where id = #{id}
+    </update>
 </mapper>
+
+

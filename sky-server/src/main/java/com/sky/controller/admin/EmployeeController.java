@@ -102,4 +102,20 @@ public class EmployeeController {
         return Result.success(pageResult);
     }
 
+    /**
+     * 对员工账号进行禁用和启用
+     * 只返回code,不返回data就不用泛型<>了
+     * Integer status是url带的参数，叫路径变量，加注解,如果路径里有多个参数一定要用("status")；
+     * id是请求参数里面的
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    @ApiOperation("启用禁用员工账号")
+    public Result startOrStop(@PathVariable("status") Integer status, Long id){
+        log.info("启用禁用员工账号：{},{}", status, id);
+        //根据status对员工进行对应操作，现在是1就改为0，现在是0改为1.没有返回值
+        employeeService.startOrStop(status,id);
+        return Result.success();
+    }
+
 }
