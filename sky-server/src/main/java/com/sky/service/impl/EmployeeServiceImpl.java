@@ -1,16 +1,20 @@
 package com.sky.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
+import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
+import com.sky.result.PageResult;
 import com.sky.service.EmployeeService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -89,6 +94,26 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //前端传过来的对象装到实体类之后，用持久层的mapper存到数据库里
         employeeMapper.insert(employee);
+    }
+
+    /**
+     * 员工分页查询接口实现:
+     *基于mysql的limit关键字实现（select * from employee limit 0,10）
+     * mybatis框架提供了PageHelper插件实现分页查询，简化分页代码编写
+     * @param employeePageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
+        //用PageHelper插件,开始分页查询，参数(页数，每页记录数),
+        PageHelper.startPage(employeePageQueryDTO.getPage(),employeePageQueryDTO.getPageSize());
+        //插件要求返回Page对象(PageHelper包中)，查询出来是员工信息对应employee实体类
+        Page<Employee> page= employeeMapper.pageQuery(employeePageQueryDTO);
+        //要返回PageResult对象，要满足里面两个属性，从page对象中提出来
+        long total = page.getTotal();
+        List<Employee> records = page.getResult();
+        PageResult pageResult = new PageResult(total, records);
+        return pageResult;
     }
 
 
